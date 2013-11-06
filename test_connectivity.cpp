@@ -37,18 +37,23 @@
 #include <vtkDataSetAttributes.h>
 
 #include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkXMLPolyDataWriter.h>
+#include <vtkLookupTable.h>
 
+#include <list>
 
 void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
     vtkPointData *pd = mesh->GetPointData();
     vtkIdTypeArray *scalars;
     vtkIdType numPts, npts;
     vtkIdType idcell, idpoint, *ptIds;
-    vtkIdList *cellIds ;
+    vtkIdList *cellIds;
+    std::list<vtkIdType> to_visit;
     int i, j;
     if (pd->GetNumberOfArrays()){
         std::cout << "Tem array" << std::endl;
         scalars = static_cast<vtkIdTypeArray*>(pd->GetArray("RegionID"));
+        pd->SetActiveAttribute("RegionID", vtkDataSetAttributes::SCALARS);
     }
     else{
         numPts = mesh->GetNumberOfPoints();
@@ -57,22 +62,36 @@ void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
         scalars->SetNumberOfValues(numPts);
         int idx = pd->AddArray(scalars);
         pd->SetActiveAttribute(idx, vtkDataSetAttributes::SCALARS);
-        std::cout << "Não tem array" << std::endl;
-    }
 
-    mesh->GetPointCells(pid, cellIds);
-    for(i=0; i < cellIds->GetNumberOfIds(); i++){
-        idcell = cellIds->GetId(i);
-        std::cout << "idcell " << idcell << std::endl; 
-        mesh->GetCellPoints(idcell, npts, ptIds);
-
-        for(j=0; j < npts; j++){
-            idpoint = ptIds[ j ];
-            std::cout << "ID " << idpoint << std::endl;
-            scalars->SetValue(idpoint, value);
+        for(i=0; i < mesh->GetNumberOfPoints(); i++){
+            scalars->SetValue(i, 0);
         }
-
     }
+
+    to_visit.push_back(pid);
+
+    cellIds = vtkIdList::New();
+    while(!to_visit.empty()){
+        pid = to_visit.front();
+        to_visit.pop_front();
+        mesh->GetPointCells(pid, cellIds);
+        for(i=0; i < cellIds->GetNumberOfIds(); i++){
+            idcell = cellIds->GetId(i);
+            mesh->GetCellPoints(idcell, npts, ptIds);
+
+            for(j=0; j < npts; j++){
+                idpoint = ptIds[ j ];
+
+                if (scalars->GetValue(idpoint) != value){
+                    scalars->SetValue(idpoint, value);
+                    to_visit.push_back(idpoint);
+                }
+            }
+
+        }
+    }
+
+    mesh->Update();
 }
 
 void LeftClickCallbackFunction(vtkObject* caller, long unsigned int eventId, void* clientData, void* callData )
@@ -90,7 +109,7 @@ void LeftClickCallbackFunction(vtkObject* caller, long unsigned int eventId, voi
       int pid = picker->GetPointId();
       std::cout << pid << std::endl;
       VisitAndMark(mesh, pid, 1);
-
+      iren->Render();
   }
 }
 
@@ -106,10 +125,18 @@ int main( int argc, char *argv[] )
   reader->Update();
   reader->GetOutput()->BuildLinks();
   
+  vtkLookupTable *lut = vtkLookupTable::New();
+  lut->SetNumberOfTableValues(100);
+  lut->Build();
+  lut->SetTableValue(0, 0.0, 1.0, 0.0, 1.0);
+  lut->SetTableValue(99, 1.0, 0.0, 0.0, 1.0);
+
   // Create a mapper.
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
   mapper->SetInput(reader->GetOutput());
-  mapper->ScalarVisibilityOn();
+  //mapper->ScalarVisibilityOn();
+  mapper->SetScalarRange(0, 1);
+  mapper->SetLookupTable(lut);
   
   // Create the actor.
   vtkActor* actor = vtkActor::New();
@@ -139,6 +166,11 @@ int main( int argc, char *argv[] )
   // interact with data
   renWin->Render();
   iren->Start();
+
+  vtkXMLPolyDataWriter *w = vtkXMLPolyDataWriter::New();
+  w->SetInput(reader->GetOutput());
+  w->SetFileName("/tmp/saida.vtp");
+  w->Write();
   
   actor->Delete();
   mapper->Delete();
