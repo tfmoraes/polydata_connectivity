@@ -111,6 +111,16 @@ void LeftClickCallbackFunction(vtkObject* caller, long unsigned int eventId, voi
       VisitAndMark(mesh, pid, 1);
       iren->Render();
   }
+  else if (iren->GetShiftKey()){
+      int x, y;
+      iren->GetEventPosition(x, y);
+
+      picker->Pick(x, y, 0, iren->FindPokedRenderer(x, y));
+      int pid = picker->GetPointId();
+      std::cout << pid << std::endl;
+      VisitAndMark(mesh, pid, 0);
+      iren->Render();
+  }
 }
 
 int main( int argc, char *argv[] )
@@ -128,7 +138,7 @@ int main( int argc, char *argv[] )
   vtkLookupTable *lut = vtkLookupTable::New();
   lut->SetNumberOfTableValues(100);
   lut->Build();
-  lut->SetTableValue(0, 0.0, 1.0, 0.0, 1.0);
+  lut->SetTableValue(0, 1.0, 1.0, 1.0, 1.0);
   lut->SetTableValue(99, 1.0, 0.0, 0.0, 1.0);
 
   // Create a mapper.
