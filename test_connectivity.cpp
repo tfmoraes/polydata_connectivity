@@ -29,7 +29,7 @@
 #include <vtkCommand.h>
 #include <vtkSmartPointer.h>
 
-#include <vtkPointPicker.h>
+#include <vtkCellPicker.h>
 #include <vtkPointData.h>
 #include <vtkIdTypeArray.h>
 #include <vtkIdList.h>
@@ -68,7 +68,14 @@ void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
         }
     }
 
-    to_visit.push_back(pid);
+
+    mesh->GetCellPoints(pid, npts, ptIds);
+
+    for(j=0; j < npts; j++){
+        idpoint = ptIds[ j ];
+        scalars->SetValue(idpoint, value);
+        to_visit.push_back(idpoint);
+    }
 
     cellIds = vtkIdList::New();
     while(!to_visit.empty()){
@@ -98,7 +105,7 @@ void LeftClickCallbackFunction(vtkObject* caller, long unsigned int eventId, voi
 {
   vtkRenderWindowInteractor *iren = static_cast<vtkRenderWindowInteractor*>(caller);
   vtkPolyData *mesh = static_cast<vtkPolyData*>(clientData);
-  vtkPointPicker *picker = static_cast<vtkPointPicker*>(iren->GetPicker());
+  vtkCellPicker *picker = static_cast<vtkCellPicker*>(iren->GetPicker());
 
   std::cout << "Event ID " << eventId << std::endl;
   if (iren->GetControlKey()){
@@ -106,7 +113,7 @@ void LeftClickCallbackFunction(vtkObject* caller, long unsigned int eventId, voi
       iren->GetEventPosition(x, y);
 
       picker->Pick(x, y, 0, iren->FindPokedRenderer(x, y));
-      int pid = picker->GetPointId();
+      int pid = picker->GetCellId();
       std::cout << pid << std::endl;
       VisitAndMark(mesh, pid, 1);
       iren->Render();
@@ -116,7 +123,7 @@ void LeftClickCallbackFunction(vtkObject* caller, long unsigned int eventId, voi
       iren->GetEventPosition(x, y);
 
       picker->Pick(x, y, 0, iren->FindPokedRenderer(x, y));
-      int pid = picker->GetPointId();
+      int pid = picker->GetCellId();
       std::cout << pid << std::endl;
       VisitAndMark(mesh, pid, 0);
       iren->Render();
@@ -153,7 +160,7 @@ int main( int argc, char *argv[] )
   actor->SetMapper(mapper);
 
   // Picker
-  vtkPointPicker* picker = vtkPointPicker::New();
+  vtkCellPicker* picker = vtkCellPicker::New();
   
   // Basic visualisation.
   vtkRenderWindow* renWin = vtkRenderWindow::New();
