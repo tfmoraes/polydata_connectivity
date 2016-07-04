@@ -98,7 +98,7 @@ void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
         }
     }
 
-    mesh->Update();
+    // mesh->Update();
 }
 
 void LeftClickCallbackFunction(vtkObject* caller, long unsigned int eventId, void* clientData, void* callData )
@@ -150,7 +150,7 @@ int main( int argc, char *argv[] )
 
   // Create a mapper.
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-  mapper->SetInput(reader->GetOutput());
+  mapper->SetInputData(reader->GetOutput());
   //mapper->ScalarVisibilityOn();
   mapper->SetScalarRange(0, 1);
   mapper->SetLookupTable(lut);
@@ -185,7 +185,7 @@ int main( int argc, char *argv[] )
   iren->Start();
 
   vtkXMLPolyDataWriter *w = vtkXMLPolyDataWriter::New();
-  w->SetInput(reader->GetOutput());
+  w->SetInputData(reader->GetOutput());
   w->SetFileName("/tmp/saida.vtp");
   w->Write();
   
