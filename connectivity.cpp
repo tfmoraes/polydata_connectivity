@@ -19,11 +19,11 @@
 
 extern "C"
 void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
-    vtkPointData *pd = mesh->GetPointData();
-    vtkIdTypeArray *scalars;
+    vtkSmartPointer<vtkPointData> pd = mesh->GetPointData();
+    vtkSmartPointer<vtkIdTypeArray> scalars;
     vtkIdType numPts, npts;
     vtkIdType idcell, idpoint, *ptIds;
-    vtkIdList *cellIds;
+    vtkSmartPointer<vtkIdList> cellIds;
     std::list<vtkIdType> to_visit;
     int i, j;
     if (pd->GetNumberOfArrays()){

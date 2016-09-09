@@ -47,6 +47,11 @@ class TestConnectivity:
 
         iren.Start()
 
+        writer = vtk.vtkXMLPolyDataWriter()
+        writer.SetInputData(self.mesh)
+        writer.SetFileName('/tmp/manolo.vtp')
+        writer.Write()
+
     def LeftClick(self, obj, evt):
         picker = obj.GetPicker()
         x, y = obj.GetEventPosition()
