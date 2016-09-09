@@ -17,7 +17,6 @@
 
 #include "connectivity.h"
 
-extern "C"
 void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
     vtkSmartPointer<vtkPointData> pd = mesh->GetPointData();
     vtkSmartPointer<vtkIdTypeArray> scalars;

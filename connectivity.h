@@ -27,6 +27,10 @@
 
 #include <list>
 
-extern "C" void VisitAndMark(vtkPolyData*, vtkIdType, vtkIdType);
+#ifdef _WIN32
+    extern "C" __declspec(dllexport) void VisitAndMark(vtkPolyData*, vtkIdType, vtkIdType);
+#else
+    extern "C" void VisitAndMark(vtkPolyData*, vtkIdType, vtkIdType);
+#endif
 
 #endif
