@@ -33,7 +33,7 @@ void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
     }
     else{
         numPts = mesh->GetNumberOfPoints();
-        scalars = vtkIdTypeArray::New();
+        scalars = vtkSmartPointer<vtkIdTypeArray>::New();
         scalars->SetName("RegionID");
         scalars->SetNumberOfValues(numPts);
         int idx = pd->AddArray(scalars);
@@ -53,7 +53,7 @@ void VisitAndMark(vtkPolyData* mesh, vtkIdType pid, vtkIdType value){
         to_visit.push_back(idpoint);
     }
 
-    cellIds = vtkIdList::New();
+    cellIds = vtkSmartPointer<vtkIdList>::New();
     while(!to_visit.empty()){
         pid = to_visit.front();
         to_visit.pop_front();
